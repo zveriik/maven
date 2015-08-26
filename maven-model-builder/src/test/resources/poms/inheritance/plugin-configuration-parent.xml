@@ -40,6 +40,10 @@ under the License.
     </mailingList>
   </mailingLists>
 
+  <properties>
+    <project.directory>must not be inherited</project.directory>
+  </properties>
+
   <build>
     <plugins>
       <plugin>

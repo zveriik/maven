@@ -41,4 +41,7 @@ under the License.
 
   <url>http://www.apache.org/child/</url>
 
+  <properties>
+    <project.directory>child</project.directory>
+  </properties>
 </project>

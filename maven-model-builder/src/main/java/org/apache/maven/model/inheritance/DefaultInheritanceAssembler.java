@@ -203,8 +203,8 @@ public class DefaultInheritanceAssembler
             }
             else
             {
-                merged.putAll( source.getProperties() );
-                putAll( merged, target.getProperties(), CHILD_DIRECTORY_PROPERTY );
+                putAll( merged, source.getProperties(), CHILD_DIRECTORY_PROPERTY );
+                merged.putAll( target.getProperties() );
             }
             target.setProperties( merged );
             target.setLocation( "properties", InputLocation.merge( target.getLocation( "properties" ),
