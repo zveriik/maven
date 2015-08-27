@@ -39,7 +39,18 @@ under the License.
     feature: support "project.directory" property, ressembling future model addition of "directory" element along "artifactId" 
   </description>
 
+  <!-- 5 inherited urls with ${project.directory} added to parent instead of artifactId -->
   <url>http://www.apache.org/child/</url>
+  <scm>
+    <connection>scm:my-scm:http://domain.org/base/child</connection>
+    <developerConnection>scm:my-scm:https://domain.org/base/child/</developerConnection>
+    <url>https://domain.org/base/child</url>
+  </scm>
+  <distributionManagement>
+    <site>
+      <url>scp://scp.domain.org/base/child/</url>
+    </site>
+  </distributionManagement>
 
   <properties>
     <project.directory>child</project.directory>

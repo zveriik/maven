@@ -28,10 +28,21 @@ under the License.
   <version>11-SNAPSHOT</version>
 
   <name>Model inheritance test parent: module path != artifactId</name>
-  <url>http://www.apache.org/</url>
 
   <modules>
     <module>child</module>
   </modules>
 
+  <!-- 5 urls in the pom will be inherited with path added -->
+  <url>http://www.apache.org/</url>
+  <scm>
+    <connection>scm:my-scm:http://domain.org/base</connection>
+    <developerConnection>scm:my-scm:https://domain.org/base/</developerConnection>
+    <url>https://domain.org/base</url>
+  </scm>
+  <distributionManagement>
+    <site>
+      <url>scp://scp.domain.org/base/</url>
+    </site>
+  </distributionManagement>
 </project>
