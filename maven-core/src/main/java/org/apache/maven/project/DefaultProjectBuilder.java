@@ -43,7 +43,6 @@ import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.DeploymentRepository;
 import org.apache.maven.model.Extension;
 import org.apache.maven.model.Model;
-import org.apache.maven.model.Parent;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.Profile;
 import org.apache.maven.model.ReportPlugin;
@@ -73,9 +72,6 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.WorkspaceRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.resolution.VersionRangeRequest;
-import org.eclipse.aether.resolution.VersionRangeResolutionException;
-import org.eclipse.aether.resolution.VersionRangeResult;
 
 /**
  */
@@ -297,44 +293,6 @@ public class DefaultProjectBuilder
         InternalConfig config = new InternalConfig( request, null, null );
 
         boolean localProject;
-
-        if ( request.isResolveVersionRanges() )
-        {
-            VersionRangeRequest versionRangeRequest = new VersionRangeRequest( pomArtifact, config.repositories, null );
-
-            try
-            {
-                VersionRangeResult versionRangeResult =
-                    repoSystem.resolveVersionRange( config.session, versionRangeRequest );
-
-                if ( versionRangeResult.getHighestVersion() == null )
-                {
-                    throw new ProjectBuildingException(
-                        artifact.getId(), "Error resolving project artifact: No versions matched the requested range",
-                        (Throwable) null );
-
-                }
-
-                if ( versionRangeResult.getVersionConstraint() != null
-                         && versionRangeResult.getVersionConstraint().getRange() != null
-                         && versionRangeResult.getVersionConstraint().getRange().getUpperBound() == null )
-                {
-                    throw new ProjectBuildingException(
-                        artifact.getId(),
-                        "Error resolving project artifact: The requested version range does not specify an upper bound",
-                        (Throwable) null );
-
-                }
-
-                pomArtifact = pomArtifact.setVersion( versionRangeResult.getHighestVersion().toString() );
-            }
-            catch ( VersionRangeResolutionException e )
-            {
-                throw new ProjectBuildingException(
-                    artifact.getId(), "Error resolving project artifact: " + e.getMessage(), e );
-
-            }
-        }
 
         try
         {
@@ -656,11 +614,32 @@ public class DefaultProjectBuilder
         project.setModel( model );
         project.setOriginalModel( result.getRawModel() );
         project.setFile( model.getPomFile() );
-        Parent p = model.getParent();
-        if ( p != null )
+
+        Model parentModel = null;
+        if ( !result.getModelIds().get( 1 ).isEmpty() )
         {
-            project.setParentArtifact( repositorySystem.createProjectArtifact( p.getGroupId(), p.getArtifactId(),
-                                                                               p.getVersion() ) );
+            // Note: The parent model already got resolved by the ModelBuilder based on model.getParent().
+            parentModel = result.getRawModel( result.getModelIds().get( 1 ) );
+        }
+
+        if ( parentModel != null )
+        {
+            String parentGroupId = parentModel.getGroupId();
+            if ( parentGroupId == null && parentModel.getParent() != null )
+            {
+                parentGroupId = parentModel.getParent().getGroupId();
+            }
+
+            String parentVersion = parentModel.getVersion();
+            if ( parentVersion == null && parentModel.getParent() != null )
+            {
+                parentVersion = parentModel.getParent().getVersion();
+            }
+
+            project.setParentArtifact( repositorySystem.createProjectArtifact( parentGroupId,
+                                                                               parentModel.getArtifactId(),
+                                                                               parentVersion ) );
+
             // org.apache.maven.its.mng4834:parent:0.1
             String parentModelId = result.getModelIds().get( 1 );
             File parentPomFile = result.getRawModel( parentModelId ).getPomFile();
