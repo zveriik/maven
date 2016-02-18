@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Profile;
 import org.apache.maven.model.resolution.ModelResolver;
@@ -66,7 +65,7 @@ public interface ModelBuildingRequest
 
     /**
      * Gets the raw model to build. If not set, model source will be used to load raw model.
-     * 
+     *
      * @return The raw model to build or {@code null} if not set.
      */
     Model getRawModel();
