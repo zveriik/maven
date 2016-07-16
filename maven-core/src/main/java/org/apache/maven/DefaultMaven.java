@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ import org.apache.maven.lifecycle.internal.LifecycleStarter;
 import org.apache.maven.model.building.ModelProblem;
 import org.apache.maven.model.building.Result;
 import org.apache.maven.plugin.LegacySupport;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.repository.LocalRepositoryNotAccessibleException;
@@ -304,9 +306,28 @@ public class DefaultMaven
 
             result.setProject( session.getTopLevelProject() );
 
+            // Give the user a hint about not existing profiles at the beginning and fail
+            // the build if he request to do so.
+            List<String> profilesWhichDoNotExist = identifyProfilesWhichDoNotExist( session.getProjects(), request.getActiveProfiles() );
+            if ( !profilesWhichDoNotExist.isEmpty() )
+            {
+                if ( request.isFailOnMissingProfiles() )
+                {
+                    logWarnOrError( profilesWhichDoNotExist, true );
+
+                    addExceptionToResult( result, new MojoFailureException(
+                        "One or more profiles you have requested to be activated do not exist." ) );
+                    return result;
+                }
+                else
+                {
+                    logWarnOrError( profilesWhichDoNotExist, false );
+                }
+            }
+
             lifecycleStarter.execute( session );
 
-            validateActivatedProfiles( session.getProjects(), request.getActiveProfiles() );
+            logWarnOrError( profilesWhichDoNotExist, false );
 
             if ( session.getResult().hasExceptions() )
             {
@@ -326,6 +347,27 @@ public class DefaultMaven
         }
 
         return result;
+    }
+
+    private void logWarnOrError( List<String> profilesWhichDoNotExist, boolean error )
+    {
+        for ( String profileId : profilesWhichDoNotExist )
+        {
+            StringBuilder sb = new StringBuilder( "The requested profile " );
+            sb.append( '"' );
+            sb.append( profileId );
+            sb.append( '"' );
+            sb.append( " could not be activated because it does not exist." );
+
+            if ( error )
+            {
+                logger.error( sb.toString() );
+            }
+            else
+            {
+                logger.warn( sb.toString() );
+            }
+        }
     }
 
     private void afterSessionEnd( Collection<MavenProject> projects, MavenSession session )
@@ -425,8 +467,10 @@ public class DefaultMaven
         return result;
     }
 
-    private void validateActivatedProfiles( List<MavenProject> projects, List<String> activeProfileIds )
+    private List<String> identifyProfilesWhichDoNotExist( List<MavenProject> projects, List<String> activeProfileIds )
     {
+        List<String> result = new LinkedList<>();
+        
         Collection<String> notActivatedProfileIds = new LinkedHashSet<>( activeProfileIds );
 
         for ( MavenProject project : projects )
@@ -437,11 +481,11 @@ public class DefaultMaven
             }
         }
 
-        for ( String notActivatedProfileId : notActivatedProfileIds )
-        {
-            logger.warn( "The requested profile \"" + notActivatedProfileId
-                + "\" could not be activated because it does not exist." );
+        if ( !notActivatedProfileIds.isEmpty() ) {
+            result.addAll( notActivatedProfileIds );
         }
+
+        return result;
     }
 
     private Map<String, MavenProject> getProjectMap( Collection<MavenProject> projects )
