@@ -113,7 +113,7 @@ public class DefaultMaven
         }
         catch ( RuntimeException e )
         {
-            //TODO Hack to make the cycle detection the same for the new graph builder
+            // TODO Hack to make the cycle detection the same for the new graph builder
             if ( e.getCause() instanceof ProjectCycleException )
             {
                 result = addExceptionToResult( new DefaultMavenExecutionResult(), e.getCause() );
@@ -121,7 +121,7 @@ public class DefaultMaven
             else
             {
                 result = addExceptionToResult( new DefaultMavenExecutionResult(),
-                                               new InternalErrorException( "Internal error: " + e, e ) );
+                    new InternalErrorException( "Internal error: " + e, e ) );
             }
         }
         finally
@@ -162,7 +162,7 @@ public class DefaultMaven
     //
     @SuppressWarnings( "checkstyle:methodlength" )
     private MavenExecutionResult doExecute( MavenExecutionRequest request )
-    {        
+    {
         request.setStartTime( new Date() );
 
         MavenExecutionResult result = new DefaultMavenExecutionResult();
@@ -205,8 +205,8 @@ public class DefaultMaven
     {
         try
         {
-            for ( AbstractMavenLifecycleParticipant listener : getLifecycleParticipants( Collections
-                .<MavenProject>emptyList() ) )
+            for ( AbstractMavenLifecycleParticipant listener : getLifecycleParticipants(
+                Collections.<MavenProject>emptyList() ) )
             {
                 listener.afterSessionStart( session );
             }
@@ -219,12 +219,11 @@ public class DefaultMaven
         eventCatapult.fire( ExecutionEvent.Type.ProjectDiscoveryStarted, session, null );
 
         Result<? extends ProjectDependencyGraph> graphResult = buildGraph( session, result );
-        
+
         if ( graphResult.hasErrors() )
         {
             return addExceptionToResult( result,
-                                         Iterables.toArray( graphResult.getProblems(), ModelProblem.class )[0]
-                                             .getException() );
+                Iterables.toArray( graphResult.getProblems(), ModelProblem.class )[0].getException() );
         }
 
         try
@@ -253,8 +252,8 @@ public class DefaultMaven
         // Workspace
         // User Local Repository
         //
-        repoSession.setWorkspaceReader( ChainedWorkspaceReader.newInstance( reactorWorkspace,
-                                                                            repoSession.getWorkspaceReader() ) );
+        repoSession.setWorkspaceReader(
+            ChainedWorkspaceReader.newInstance( reactorWorkspace, repoSession.getWorkspaceReader() ) );
 
         repoSession.setReadOnly();
 
@@ -285,14 +284,13 @@ public class DefaultMaven
         // Note that participants may affect the topological order of the projects but it is
         // not expected that a participant will add or remove projects from the session.
         //
-        
+
         graphResult = buildGraph( session, result );
-        
+
         if ( graphResult.hasErrors() )
         {
             return addExceptionToResult( result,
-                                         Iterables.toArray( graphResult.getProblems(), ModelProblem.class )[0]
-                                             .getException() );
+                Iterables.toArray( graphResult.getProblems(), ModelProblem.class )[0].getException() );
         }
 
         try
@@ -308,10 +306,11 @@ public class DefaultMaven
 
             // Give the user a hint about not existing profiles at the beginning and fail
             // the build if he request to do so.
-            List<String> profilesWhichDoNotExist = identifyProfilesWhichDoNotExist( session.getProjects(), request.getActiveProfiles() );
+            List<String> profilesWhichDoNotExist =
+                identifyProfilesWhichDoNotExist( session.getProjects(), request.getActiveProfiles() );
             if ( !profilesWhichDoNotExist.isEmpty() )
             {
-                if ( request.isFailOnMissingProfiles() )
+                if ( request.isFailLevelWARN() )
                 {
                     logWarnOrError( profilesWhichDoNotExist, true );
 
@@ -388,7 +387,7 @@ public class DefaultMaven
             Thread.currentThread().setContextClassLoader( originalClassLoader );
         }
     }
-    
+
     public RepositorySystemSession newRepositorySession( MavenExecutionRequest request )
     {
         return repositorySessionFactory.newRepositorySession( request );
@@ -411,8 +410,7 @@ public class DefaultMaven
 
     private Collection<AbstractMavenLifecycleParticipant> getLifecycleParticipants( Collection<MavenProject> projects )
     {
-        Collection<AbstractMavenLifecycleParticipant> lifecycleListeners =
-            new LinkedHashSet<>();
+        Collection<AbstractMavenLifecycleParticipant> lifecycleListeners = new LinkedHashSet<>();
 
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         try
@@ -470,7 +468,7 @@ public class DefaultMaven
     private List<String> identifyProfilesWhichDoNotExist( List<MavenProject> projects, List<String> activeProfileIds )
     {
         List<String> result = new LinkedList<>();
-        
+
         Collection<String> notActivatedProfileIds = new LinkedHashSet<>( activeProfileIds );
 
         for ( MavenProject project : projects )
@@ -481,7 +479,8 @@ public class DefaultMaven
             }
         }
 
-        if ( !notActivatedProfileIds.isEmpty() ) {
+        if ( !notActivatedProfileIds.isEmpty() )
+        {
             result.addAll( notActivatedProfileIds );
         }
 
@@ -530,7 +529,7 @@ public class DefaultMaven
         return index;
     }
 
-    private Result<? extends ProjectDependencyGraph> buildGraph( MavenSession session, MavenExecutionResult result ) 
+    private Result<? extends ProjectDependencyGraph> buildGraph( MavenSession session, MavenExecutionResult result )
     {
         Result<? extends ProjectDependencyGraph> graphResult = graphBuilder.build( session );
         for ( ModelProblem problem : graphResult.getProblems() )
@@ -550,12 +549,12 @@ public class DefaultMaven
             ProjectDependencyGraph projectDependencyGraph = graphResult.get();
             session.setProjects( projectDependencyGraph.getSortedProjects() );
             session.setAllProjects( projectDependencyGraph.getSortedProjects() );
-            session.setProjectDependencyGraph( projectDependencyGraph );                
+            session.setProjectDependencyGraph( projectDependencyGraph );
         }
-        
-        return graphResult;        
+
+        return graphResult;
     }
-    
+
     @Deprecated
     // 5 January 2014
     protected Logger getLogger()

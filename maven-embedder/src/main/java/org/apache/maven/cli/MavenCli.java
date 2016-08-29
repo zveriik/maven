@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;
@@ -74,6 +75,7 @@ import org.apache.maven.exception.ExceptionSummary;
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
 import org.apache.maven.execution.ExecutionListener;
 import org.apache.maven.execution.MavenExecutionRequest;
+import org.apache.maven.execution.MavenExecutionRequest.FailLevel;
 import org.apache.maven.execution.MavenExecutionRequestPopulationException;
 import org.apache.maven.execution.MavenExecutionRequestPopulator;
 import org.apache.maven.execution.MavenExecutionResult;
@@ -109,9 +111,6 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.logging.LoggerManager;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
-import com.google.inject.AbstractModule;
 import org.eclipse.aether.transfer.TransferListener;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -121,6 +120,10 @@ import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecUtil;
 import org.sonatype.plexus.components.sec.dispatcher.model.SettingsSecurity;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
+import com.google.inject.AbstractModule;
 
 // TODO: push all common bits back to plexus cli and prepare for transition to Guice. We don't need 50 ways to make CLIs
 
@@ -1616,9 +1619,21 @@ public class MavenCli
             }
         }
 
-        if ( commandLine.hasOption( CLIManager.FAIL_ON_MISSING_PROFILES ) )
+        if ( commandLine.hasOption( CLIManager.FAIL_LEVEL ) )
         {
-            request.setFailOnMissingProfiles( true );
+            String failLevelString = commandLine.getOptionValue( CLIManager.FAIL_LEVEL );
+            
+            FailLevel valueOf;
+            try
+            {
+                valueOf = MavenExecutionRequest.FailLevel.valueOf( failLevelString.toUpperCase() );
+            }
+            catch ( Exception e )
+            {
+                throw new IllegalArgumentException("The given value for --fail-level is not allowed. Only WARN or ERROR is allowed.");
+            }
+            
+            request.setFailLevel( valueOf );
         }
 
         //
