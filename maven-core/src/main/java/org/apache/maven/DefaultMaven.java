@@ -468,7 +468,6 @@ public class DefaultMaven
     private List<String> identifyProfilesWhichDoNotExist( List<MavenProject> projects, List<String> activeProfileIds )
     {
         List<String> result = new LinkedList<>();
-
         Collection<String> notActivatedProfileIds = new LinkedHashSet<>( activeProfileIds );
 
         for ( MavenProject project : projects )
@@ -479,8 +478,7 @@ public class DefaultMaven
             }
         }
 
-        if ( !notActivatedProfileIds.isEmpty() )
-        {
+        if ( !notActivatedProfileIds.isEmpty() ) {
             result.addAll( notActivatedProfileIds );
         }
 

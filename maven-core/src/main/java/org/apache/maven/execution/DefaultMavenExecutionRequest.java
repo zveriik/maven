@@ -163,6 +163,8 @@ public class DefaultMavenExecutionRequest
     private boolean useLegacyLocalRepositoryManager = false;
 
     private Map<String, Object> data;
+    
+    private boolean failOnMissingProfiles;
 
     private FailLevel failLevel;
 
@@ -1313,6 +1315,6 @@ public class DefaultMavenExecutionRequest
     public MavenExecutionRequest setFailLevel( FailLevel failLevel )
     {
         this.failLevel = failLevel;
-        return this;
     }
+    
 }
